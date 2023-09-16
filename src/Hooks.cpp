@@ -1,4 +1,5 @@
 #include "Hooks.h"
+
 #include <toml++/toml.h>
 
 namespace Hooks
@@ -8,7 +9,7 @@ namespace Hooks
     void Install() noexcept
     {
         constexpr auto path = L"Data/SFSE/Plugins/ConsoleCommandRunner";
-        constexpr auto ext = L".toml";
+        constexpr auto ext  = L".toml";
 
         for (const auto& file : std::filesystem::directory_iterator(path))
         {
