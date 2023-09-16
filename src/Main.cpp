@@ -3,8 +3,11 @@
 static DWORD ThreadProc_OnDelayLoad(void* unused)
 {
     (void)unused;
-    Sleep(8000); // a reasonable amount of time for the game to initialize
-    Hooks::Install();
+    while (!RE::TESForm::LookupByID(0x14)) // Wait until forms are loaded, then run startup commands
+    {
+        Sleep(1000);
+    }
+    Hooks::RunCommands("DataLoaded");
     return 0;
 }
 
@@ -13,6 +16,7 @@ void Listener(SFSE::MessagingInterface::Message* message) noexcept
 {
     if (message->type == SFSE::MessagingInterface::kPostLoad)
     {
+        //Hooks::Install();
         CreateThread(NULL, 4096, ThreadProc_OnDelayLoad, NULL, 0, NULL);
     }
 }

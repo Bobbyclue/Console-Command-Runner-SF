@@ -6,44 +6,48 @@ namespace Hooks
 {
     static REL::Relocation<__int64 (*)(double, char*, ...)> ExecuteCommand{ REL::Offset(0x287DF04) };
 
-    void Install() noexcept
+    void RunCommands(const char* a_Event) noexcept
     {
         constexpr auto path = L"Data/SFSE/Plugins/ConsoleCommandRunner";
-        constexpr auto ext  = L".toml";
 
-        for (const auto& file : std::filesystem::directory_iterator(path))
+        if (std::filesystem::exists(path))
         {
-            if (std::filesystem::is_regular_file(file) && file.path().extension() == ext)
+            constexpr auto ext = L".toml";
+
+            for (const auto& file : std::filesystem::directory_iterator(path))
             {
-                const auto filePath = file.path();
-                const auto tbl      = toml::parse_file(filePath.c_str());
-                const auto arr      = tbl.get_as<toml::array>("Event");
-
-                if (arr)
+                if (std::filesystem::is_regular_file(file) && file.path().extension() == ext)
                 {
-                    for (auto&& elem : *arr)
+                    const auto filePath = file.path();
+                    const auto tbl      = toml::parse_file(filePath.c_str());
+                    const auto arr      = tbl.get_as<toml::array>("Event");
+
+                    if (arr)
                     {
-                        const auto& variableNameTbl = *elem.as_table();
-                        const auto  variableName    = variableNameTbl["EventType"].value<std::string>();
-
-                        if (variableName)
+                        for (auto&& elem : *arr)
                         {
-                            const auto VariableNameString = variableName.value();
+                            const auto& variableNameTbl = *elem.as_table();
+                            const auto  variableName    = variableNameTbl["EventType"].value<std::string>();
 
-                            if (VariableNameString == "DataLoaded")
+                            if (variableName)
                             {
-                                const auto DataLoadedArr = variableNameTbl["Commands"].as_array();
+                                const auto variableNameString = variableName.value();
 
-                                if (DataLoadedArr)
+                                if (variableNameString == a_Event)
                                 {
-                                    for (auto&& tag : *DataLoadedArr)
-                                    {
-                                        const auto& tagStr         = *tag.as_string();
-                                        auto        commandString  = tagStr.as_string()->get();
-                                        auto        commandCString = commandString.data();
+                                    const auto dataLoadedArr = variableNameTbl["Commands"].as_array();
 
-                                        ExecuteCommand(0, commandCString);
-                                        logger::info("DataLoaded execute {}", commandCString);
+                                    if (dataLoadedArr)
+                                    {
+                                        for (auto&& tag : *dataLoadedArr)
+                                        {
+                                            const auto& tagStr         = *tag.as_string();
+                                            auto        commandString  = tagStr.as_string()->get();
+                                            auto        commandCString = commandString.data();
+
+                                            ExecuteCommand(0, commandCString);
+                                            logger::info("DataLoaded execute {}", commandCString);
+                                        }
                                     }
                                 }
                             }
@@ -53,4 +57,31 @@ namespace Hooks
             }
         }
     }
+
+    /* // For testing only, should run commands when the game loads. Need to find a better hook.
+    static bool GameLoaded;
+
+    struct ActorUpdate
+    {
+        static void Thunk(float a_delta)
+        {
+            func(a_delta);
+            if (!GameLoaded)
+            {
+                GameLoaded = true;
+                RunCommands("OnPlayerLoadGame");
+            }
+        }
+        [[maybe_unused]] static inline REL::Relocation<decltype(Thunk)> func;
+
+        static inline std::size_t idx = 0x13F;
+    };
+
+    void Install() noexcept
+    {
+        SFSE::stl::write_vfunc<RE::Actor, ActorUpdate>();
+
+        logger::info("Hooked Actor Update");
+    }
+    */
 } // namespace Hooks

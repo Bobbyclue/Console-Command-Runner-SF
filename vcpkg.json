@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
-  "name": "plugin-name",
+  "name": "console-command-runner",
   "version-semver": "0.0.1",
   "dependencies": ["commonlibsf", "tomlplusplus"],
   "license": "GPL-3.0-or-later",
