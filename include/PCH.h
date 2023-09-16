@@ -1,112 +1,152 @@
 #pragma once
 
-#include <cassert>
-#include <cctype>
-#include <cerrno>
-#include <cfenv>
-#include <cfloat>
-#include <cinttypes>
-#include <climits>
-#include <clocale>
-#include <cmath>
+/* +++++++++++++++++++++++++ C++23 Standard Library +++++++++++++++++++++++++ */
+
+// Concepts library
+#include <concepts>
+
+// Utilities library
+#include <any>
+#include <bitset>
+#include <chrono>
+#include <compare>
 #include <csetjmp>
 #include <csignal>
 #include <cstdarg>
 #include <cstddef>
-#include <cstdint>
-#include <cstdio>
 #include <cstdlib>
-#include <cstring>
 #include <ctime>
+#include <expected>
+#include <functional>
+#include <initializer_list>
+#include <optional>
+#include <source_location>
+#include <tuple>
+#include <type_traits>
+#include <typeindex>
+#include <typeinfo>
+#include <utility>
+#include <variant>
+#include <version>
+
+// Dynamic memory management
+#include <memory>
+#include <memory_resource>
+#include <new>
+#include <scoped_allocator>
+
+// Numeric limits
+#include <cfloat>
+#include <cinttypes>
+#include <climits>
+#include <cstdint>
+#include <limits>
+#include <stdfloat>
+
+// Error handling
+#include <cassert>
+#include <cerrno>
+#include <exception>
+#include <stacktrace>
+#include <stdexcept>
+#include <system_error>
+
+// Strings library
+#include <cctype>
+#include <charconv>
+#include <cstring>
 #include <cuchar>
 #include <cwchar>
 #include <cwctype>
+#include <string>
+#include <string_view>
 
-#include <algorithm>
-#include <any>
+// Containers library
 #include <array>
-#include <atomic>
-#include <barrier>
-#include <bit>
-#include <bitset>
-#include <charconv>
-#include <chrono>
-#include <compare>
-#include <complex>
-#include <concepts>
-#include <condition_variable>
 #include <deque>
-#include <exception>
-#include <execution>
-#include <filesystem>
 #include <forward_list>
+#include <list>
+#include <map>
+#include <queue>
+#include <set>
+#include <span>
+#include <stack>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
+
+// Iterators library
+#include <iterator>
+
+// Ranges library
+#include <ranges>
+
+// Algorithms library
+#include <algorithm>
+#include <execution>
+
+// Numerics library
+#include <bit>
+#include <cfenv>
+#include <cmath>
+#include <complex>
+#include <numbers>
+#include <numeric>
+#include <random>
+#include <ratio>
+#include <valarray>
+
+// Localization library
+#include <clocale>
+#include <locale>
+
+// Input/output library
+#include <cstdio>
 #include <fstream>
-#include <functional>
-#include <future>
-#include <initializer_list>
 #include <iomanip>
 #include <ios>
 #include <iosfwd>
 #include <iostream>
 #include <istream>
-#include <iterator>
-#include <latch>
-#include <limits>
-#include <locale>
-#include <map>
-#include <memory>
-#include <memory_resource>
-#include <mutex>
-#include <new>
-#include <numbers>
-#include <numeric>
-#include <optional>
 #include <ostream>
-#include <queue>
-#include <random>
-#include <ranges>
-#include <ratio>
-#include <regex>
-#include <scoped_allocator>
-#include <semaphore>
-#include <set>
-#include <shared_mutex>
-#include <source_location>
-#include <span>
+#include <print>
+#include <spanstream>
 #include <sstream>
-#include <stack>
-#include <stdexcept>
 #include <streambuf>
-#include <string>
-#include <string_view>
+#include <strstream>
 #include <syncstream>
-#include <system_error>
-#include <thread>
-#include <tuple>
-#include <type_traits>
-#include <typeindex>
-#include <typeinfo>
-#include <unordered_map>
-#include <unordered_set>
-#include <utility>
-#include <valarray>
-#include <variant>
-#include <vector>
-#include <version>
 
-#include <RE/Starfield.h>
-#include <REL/Relocation.h>
-#include <SFSE/Interfaces.h>
-#include <SFSE/SFSE.h>
+// Filesystem library
+#include <filesystem>
+
+// Regular Expressions library
+#include <regex>
+
+// Atomic Operations library
+#include <atomic>
+
+// Thread support library
+#include <barrier>
+#include <condition_variable>
+#include <future>
+#include <latch>
+#include <mutex>
+#include <semaphore>
+#include <shared_mutex>
+#include <stop_token>
+#include <thread>
+
+/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 
 // clang-format off
+#include <RE/Starfield.h>
+#include <REL/Relocation.h>
+#include <SFSE/SFSE.h>
+
 #include <ShlObj_core.h>
 #include <Psapi.h>
 #include <Windows.h>
 // clang-format on
-
-#include <spdlog/sinks/basic_file_sink.h>
-#include <spdlog/sinks/msvc_sink.h>
 
 #include "Plugin.h"
 
@@ -134,32 +174,3 @@ public:
         return std::addressof(singleton);
     }
 };
-
-namespace stl
-{
-    using namespace SFSE::stl;
-
-    template <typename T>
-    constexpr void write_thunk_call() noexcept
-    {
-        SFSE::AllocTrampoline(14);
-        auto& trampoline{ SFSE::GetTrampoline() };
-        T::func = trampoline.write_call<5>(T::address, T::Thunk);
-    }
-
-    template <typename TDest, typename TSource>
-    constexpr void write_vfunc() noexcept
-    {
-        REL::Relocation vtbl{ TDest::VTABLE[0] };
-        TSource::func = vtbl.write_vfunc(TSource::idx, TSource::Thunk);
-    }
-
-    // template <typename T>
-    // constexpr void write_vfunc(const REL::VariantID variant_id) noexcept
-    //{
-    //     REL::Relocation<std::uintptr_t> vtbl{ variant_id };
-    //     T::func = vtbl.write_vfunc(T::idx, T::Thunk);
-    // }
-} // namespace stl
-
-#define SFSEPluginVersion extern "C" __declspec(dllexport) constinit SFSE::PluginVersionData SFSEPlugin_Version

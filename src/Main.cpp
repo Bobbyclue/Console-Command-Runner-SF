@@ -1,23 +1,28 @@
 #include "Hooks.h"
-#include "Logging.h"
-#include "Settings.h"
 
+static DWORD ThreadProc_OnDelayLoad(void* unused)
+{
+    (void)unused;
+    Sleep(8000); // a reasonable amount of time for the game to initialize
+    Hooks::Install();
+    return 0;
+}
+
+// SFSE message listener, use this to do stuff at specific moments during runtime
 void Listener(SFSE::MessagingInterface::Message* message) noexcept
 {
-    if (message->type <=> SFSE::MessagingInterface::kPostPostLoad == 0)
+    if (message->type == SFSE::MessagingInterface::kPostLoad)
     {
-        Settings::LoadSettings();
-        Hooks::Install();
+        CreateThread(NULL, 4096, ThreadProc_OnDelayLoad, NULL, 0, NULL);
     }
 }
 
+// Main SFSE plugin entry point, initialize everything here
 SFSEPluginLoad(const SFSE::LoadInterface* sfse)
 {
-    InitializeLogging();
-
-    logger::info("{} {} is loading...", Plugin::Name, Plugin::Version);
-
     Init(sfse);
+
+    logger::info("{} {} is loading...", Plugin::Name, Plugin::Version.string("."sv));
 
     if (const auto messaging{ SFSE::GetMessagingInterface() }; !messaging->RegisterListener(Listener))
         return false;
@@ -26,16 +31,3 @@ SFSEPluginLoad(const SFSE::LoadInterface* sfse)
 
     return true;
 }
-
-SFSEPluginVersion = []() noexcept {
-    SFSE::PluginVersionData data{};
-
-    data.PluginVersion(Plugin::Version);
-    data.PluginName(Plugin::Name);
-    data.AuthorName(Plugin::Author);
-    data.UsesSigScanning(false);
-    data.HasNoStructUse(true);
-    data.CompatibleVersions({ SFSE::RUNTIME_LATEST });
-
-    return data;
-}();
