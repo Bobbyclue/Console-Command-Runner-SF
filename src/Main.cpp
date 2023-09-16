@@ -16,7 +16,7 @@ void Listener(SFSE::MessagingInterface::Message* message) noexcept
 {
     if (message->type == SFSE::MessagingInterface::kPostLoad)
     {
-        //Hooks::Install();
+        // Hooks::Install();
         CreateThread(NULL, 4096, ThreadProc_OnDelayLoad, NULL, 0, NULL);
     }
 }
