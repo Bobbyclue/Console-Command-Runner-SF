@@ -2,9 +2,18 @@
 
 #include <toml++/toml.h>
 
-namespace Hooks
+namespace Functions
 {
-    static REL::Relocation<__int64 (*)(double, char*, ...)> ExecuteCommand{ REL::Offset(0x287DF04) };
+    RE::TESForm* LookupByID(std::uint32_t a_formID)
+    {
+        using func_t = decltype(&Functions::LookupByID);
+        REL::Relocation<func_t> func{ REL::ID(86125) };
+        return func(a_formID);
+    }
+
+    // static REL::Relocation<__int64 (*)(double, char*, ...)> ExecuteCommand{ REL::Offset(0x287DF04) }; // 1.7.29
+    // static REL::Relocation<__int64 (*)(double, char*, ...)> ExecuteCommand{ REL::Offset(0x2881064) }; // 1.7.33
+    static REL::Relocation<__int64 (*)(double, char*, ...)> ExecuteCommand{ REL::ID(166307) }; // Address Library ID
 
     void RunCommands(const char* a_Event) noexcept
     {
@@ -45,8 +54,8 @@ namespace Hooks
                                             auto        commandString  = tagStr.as_string()->get();
                                             auto        commandCString = commandString.data();
 
+                                            logger::info("{} execute {}", a_Event, commandCString);
                                             ExecuteCommand(0, commandCString);
-                                            logger::info("DataLoaded execute {}", commandCString);
                                         }
                                     }
                                 }
@@ -57,31 +66,4 @@ namespace Hooks
             }
         }
     }
-
-    /* // For testing only, should run commands when the game loads. Need to find a better hook.
-    static bool GameLoaded;
-
-    struct ActorUpdate
-    {
-        static void Thunk(float a_delta)
-        {
-            func(a_delta);
-            if (!GameLoaded)
-            {
-                GameLoaded = true;
-                RunCommands("OnPlayerLoadGame");
-            }
-        }
-        [[maybe_unused]] static inline REL::Relocation<decltype(Thunk)> func;
-
-        static inline std::size_t idx = 0x13F;
-    };
-
-    void Install() noexcept
-    {
-        SFSE::stl::write_vfunc<RE::Actor, ActorUpdate>();
-
-        logger::info("Hooked Actor Update");
-    }
-    */
-} // namespace Hooks
+}

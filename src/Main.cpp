@@ -3,11 +3,11 @@
 static DWORD ThreadProc_OnDelayLoad(void* unused)
 {
     (void)unused;
-    while (!RE::TESForm::LookupByID(0x14)) // Wait until forms are loaded, then run startup commands
+    while (!Functions::LookupByID(0x14)) // Wait until forms are loaded, then run startup commands // Fix ID
     {
         Sleep(1000);
     }
-    Hooks::RunCommands("DataLoaded");
+    Functions::RunCommands("DataLoaded");
     return 0;
 }
 
@@ -16,7 +16,7 @@ void Listener(SFSE::MessagingInterface::Message* message) noexcept
 {
     if (message->type == SFSE::MessagingInterface::kPostLoad)
     {
-        // Hooks::Install();
+        // Add Event Sinks
         CreateThread(NULL, 4096, ThreadProc_OnDelayLoad, NULL, 0, NULL);
     }
 }

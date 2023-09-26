@@ -2,20 +2,20 @@
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
   "name": "console-command-runner",
   "version-semver": "0.0.1",
-  "dependencies": ["commonlibsf", "tomlplusplus"],
+  "dependencies": [ "commonlibsf", "tomlplusplus"],
   "license": "GPL-3.0-or-later",
   "vcpkg-configuration": {
     "default-registry": {
       "kind": "git",
       "repository": "https://github.com/microsoft/vcpkg",
-      "baseline": "d99b6930b920d85dd4e1edbac37ecb3f354185c0"
+      "baseline": "9648982d407bd9b0e11bd8fda147ebc4cab0bcc9"
     },
     "registries": [
       {
         "kind": "git",
         "repository": "https://github.com/Starfield-Reverse-Engineering/Starfield-RE-vcpkg",
-        "baseline": "f35c60c42bb4c7ea08be9c695c9f14607ba2ffef",
-        "packages": ["commonlibsf"]
+        "baseline": "ae7f980f06c17f9298d91518ac079e0c75fc54c2",
+        "packages": [ "commonlibsf" ]
       }
     ]
   }
