@@ -66,4 +66,4 @@ namespace Functions
             }
         }
     }
-}
+} // namespace Functions
