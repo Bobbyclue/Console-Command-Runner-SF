@@ -49,8 +49,8 @@ namespace Functions
 
                                 if (variableNameString == "OnMenuOpenCloseEvent")
                                 {
-                                    std::string hasMenuName = "";
-                                    int hasIsOpening = -1;
+                                    std::string hasMenuName  = "";
+                                    int         hasIsOpening = -1;
 
                                     const auto menuNameCond  = variableNameTbl["asMenuName"].as_string();
                                     const auto isOpeningCond = variableNameTbl["abOpening"].as_boolean();
@@ -73,8 +73,8 @@ namespace Functions
                                     {
                                         for (auto&& tag : *dataLoadedArr)
                                         {
-                                            const auto tagStr         = tag.as_string();
-                                            const auto commandString  = tagStr->get();
+                                            const auto tagStr        = tag.as_string();
+                                            const auto commandString = tagStr->get();
 
                                             logger::info("OnMenuOpenCloseEvent store command {}", commandString);
 
@@ -99,8 +99,8 @@ namespace Functions
                                     {
                                         for (auto&& tag : *dataLoadedArr)
                                         {
-                                            const auto& tagStr         = *tag.as_string();
-                                            const auto  commandString  = tagStr.as_string()->get();
+                                            const auto& tagStr        = *tag.as_string();
+                                            const auto  commandString = tagStr.as_string()->get();
 
                                             logger::info("Data Loaded store command {}", commandString);
                                             dataLoadedMap.push_back(commandString);
@@ -156,4 +156,4 @@ namespace Events
         }
         return RE::BSEventNotifyControl::kContinue;
     }
-}
+} // namespace Events

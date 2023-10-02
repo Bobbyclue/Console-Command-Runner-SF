@@ -19,13 +19,13 @@ namespace RE
 {
     void* BGSScaleFormManager();
     void  ExecuteCommand(void* a_scaleformManager, const char* a_command);
-}
+} // namespace RE
 
 namespace Functions
 {
     void StoreCommands();
     void RunCommands();
-}
+} // namespace Functions
 
 template <class T>
 class ISingleton
@@ -54,4 +54,4 @@ namespace Events
     {
         RE::BSEventNotifyControl ProcessEvent(const RE::MenuOpenCloseEvent& a_event, RE::BSTEventSource<RE::MenuOpenCloseEvent>* a_eventSource) override;
     };
-}
+} // namespace Events
