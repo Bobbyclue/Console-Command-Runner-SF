@@ -1,15 +1,5 @@
 #include "Hooks.h"
-
-static DWORD ThreadProc_OnDelayLoad(void* unused)
-{
-    (void)unused;
-    while (!RE::TESForm::LookupByID(0x14)) // Wait until forms are loaded, then run startup commands
-    {
-        Sleep(1000);
-    }
-    Functions::RunCommands();
-    return 0;
-}
+#include "Hooks.cpp"
 
 // SFSE message listener, use this to do stuff at specific moments during runtime
 void Listener(SFSE::MessagingInterface::Message* message) noexcept
@@ -18,7 +8,9 @@ void Listener(SFSE::MessagingInterface::Message* message) noexcept
     {
         Functions::StoreCommands();
         RE::UI::GetSingleton()->RegisterSink(Events::EventHandler::GetSingleton());
-        CreateThread(NULL, 4096, ThreadProc_OnDelayLoad, NULL, 0, NULL);
+    }
+    else if (message->type == SFSE::MessagingInterface::kPostDataLoad) {
+        Functions::RunCommands();
     }
 }
 

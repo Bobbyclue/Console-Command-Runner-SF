@@ -138,15 +138,9 @@
 
 /* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 
-// clang-format off
 #include <RE/Starfield.h>
-#include <REL/Relocation.h>
+#include <REL/REL.h>
 #include <SFSE/SFSE.h>
-
-#include <ShlObj_core.h>
-#include <Psapi.h>
-#include <Windows.h>
-// clang-format on
 
 #include "Plugin.h"
 
@@ -154,6 +148,7 @@ using namespace std::literals;
 using namespace REL::literals;
 
 namespace logger = SFSE::log;
+namespace stl    = SFSE::stl;
 
 template <typename T>
 class Singleton
@@ -163,12 +158,13 @@ protected:
     constexpr ~Singleton() noexcept = default;
 
 public:
-    constexpr Singleton(const Singleton&)      = delete;
-    constexpr Singleton(Singleton&&)           = delete;
+    constexpr Singleton(const Singleton&) = delete;
+    constexpr Singleton(Singleton&&)      = delete;
+
     constexpr auto operator=(const Singleton&) = delete;
     constexpr auto operator=(Singleton&&)      = delete;
 
-    static constexpr T* GetSingleton() noexcept
+    static constexpr auto GetSingleton() noexcept
     {
         static T singleton;
         return std::addressof(singleton);

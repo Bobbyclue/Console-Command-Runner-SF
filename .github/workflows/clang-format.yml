@@ -1,14 +1,18 @@
-name: Format
+name: clang-format
 
 on:
   push:
     branches: main
+    paths:
+      - "include/**"
+      - "src/**"
+      - ".clang-format"
+  workflow_dispatch:
 
-permissions:
-  contents: write
+permissions: write-all
 
 jobs:
-  maintenance:
+  clang-format:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -21,11 +25,6 @@ jobs:
           extensions: "h,cpp"
           clangFormatVersion: 16
           inplace: true
-
-      - name: Run Prettier
-        uses: actionsx/prettier@v3
-        with:
-          args: --write "${{ github.workspace }}/*.json"
 
       - name: Add & Commit
         uses: EndBug/add-and-commit@v9.1.3

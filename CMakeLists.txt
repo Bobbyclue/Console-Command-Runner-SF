@@ -1,27 +1,27 @@
 cmake_minimum_required(VERSION 3.27)
-message("Using toolchain file ${CMAKE_TOOLCHAIN_FILE}.")
 
-########################################################################################################################
-## Define project
-########################################################################################################################
 project(
   ConsoleCommandRunner
-  VERSION 1.3.0
+  VERSION 1.3.1
   LANGUAGES CXX
 )
+
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-message("\nCMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
-message("CMAKE_SHARED_LINKER_FLAGS: ${CMAKE_SHARED_LINKER_FLAGS}")
-
-message("\nCMAKE_CXX_FLAGS_RELWITHDEBINFO: ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
-message("CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO: ${CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO}")
-
-message("\nCMAKE_CXX_FLAGS_DEBUG: ${CMAKE_CXX_FLAGS_DEBUG}")
-message("CMAKE_SHARED_LINKER_FLAGS_DEBUG: ${CMAKE_SHARED_LINKER_FLAGS_DEBUG}")
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_DEBUG OFF)
+set(CMAKE_OPTIMIZE_DEPENDENCIES ON)
 
 include(GNUInstallDirs)
+
+# CPM
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/CPM.cmake)
+set(CPM_SOURCE_CACHE ${CMAKE_CURRENT_BINARY_DIR}/.cpm)
+
+# Dependencies
+CPMAddPackage("gh:Starfield-Reverse-Engineering/CommonLibSF#main")
+
+include(${CommonLibSF_SOURCE_DIR}/CommonLibSF/cmake/CommonLibSF.cmake)
 
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.rc.in
@@ -29,38 +29,61 @@ configure_file(
   @ONLY
 )
 
-set(PUBLIC_HEADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}")
-
-set(
+# Add headers
+file(
+  GLOB_RECURSE
   headers
-    include/Utility.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp
+)
+list(REMOVE_ITEM headers ${CMAKE_CURRENT_SOURCE_DIR}/include/PCH.h)
+
+# Add sources
+file(
+  GLOB_RECURSE
+  sources
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/version.rc
 )
 
+# Create plugin
+# set all source files here
 set(
-  sources
-    src/Main.cpp
-    src/Hooks.cpp
-
-    ${CMAKE_CURRENT_BINARY_DIR}/version.rc
+  SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Main.cpp
 )
 
 source_group(
   TREE ${CMAKE_CURRENT_SOURCE_DIR}
-  FILES ${headers} ${sources}
+  FILES
+    ${SOURCES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/Plugin.h
 )
 
-########################################################################################################################
-## Configure target DLL
-########################################################################################################################
-find_package(CommonLibSF CONFIG REQUIRED)
+source_group(
+  TREE ${CMAKE_CURRENT_BINARY_DIR}
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/version.rc
 
-add_commonlibsf_plugin(
+)
+
+#find_package(CommonLibSF CONFIG REQUIRED)
+#add_commonlibsf_plugin(
+#  ${PROJECT_NAME}
+#  AUTHOR "Bobbyclue"
+#  SOURCES ${headers} ${sources}
+#)
+add_library(
   ${PROJECT_NAME}
-  AUTHOR Bobbyclue
-  SOURCES ${headers} ${sources}
+  SHARED
+    ${SOURCES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/Plugin.h
+    ${CMAKE_CURRENT_BINARY_DIR}/version.rc
+    .clang-format
+    vcpkg.json
 )
 
-add_library("${PROJECT_NAME}::${PROJECT_NAME}" ALIAS "${PROJECT_NAME}")
+add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
 target_include_directories(
   ${PROJECT_NAME}
@@ -68,10 +91,6 @@ target_include_directories(
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>
     $<INSTALL_INTERFACE:src>
-)
-
-target_include_directories(
-  ${PROJECT_NAME}
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
@@ -83,51 +102,44 @@ target_precompile_headers(
 )
 
 install(
-  DIRECTORY "${PUBLIC_HEADER_DIR}"
-  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
-)
-
-install(
   TARGETS ${PROJECT_NAME}
-  DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
-########################################################################################################################
-## Automatic plugin deployment
-########################################################################################################################
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(BUILD_NAME "Debug")
+if(CMAKE_BUILD_TYPE STREQUAL Debug)
+  set(BUILD_NAME Debug)
 else()
-    set(BUILD_NAME "Release")
+  set(BUILD_NAME Release)
 endif()
 
 add_custom_command(
   TARGET ${PROJECT_NAME}
   POST_BUILD
   COMMAND
-    ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_SOURCE_DIR}/contrib/Plugin${BUILD_NAME}/sfse/plugins"
-)
-add_custom_command(
-  TARGET ${PROJECT_NAME}
-  POST_BUILD
+    ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_SOURCE_DIR}/contrib/Plugin${BUILD_NAME}/sfse/plugins
   COMMAND
-    ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${PROJECT_NAME}> "${CMAKE_CURRENT_SOURCE_DIR}/contrib/Plugin${BUILD_NAME}/sfse/plugins"
-)
-add_custom_command(
-  TARGET ${PROJECT_NAME}
-  POST_BUILD
+    ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${PROJECT_NAME}> ${CMAKE_CURRENT_SOURCE_DIR}/contrib/Plugin${BUILD_NAME}/sfse/plugins
   COMMAND
-    ${CMAKE_COMMAND} -E copy $<TARGET_PDB_FILE:${PROJECT_NAME}> "${CMAKE_CURRENT_SOURCE_DIR}/contrib/Plugin${BUILD_NAME}/sfse/plugins"
+    ${CMAKE_COMMAND} -E copy $<TARGET_PDB_FILE:${PROJECT_NAME}> ${CMAKE_CURRENT_SOURCE_DIR}/contrib/Plugin${BUILD_NAME}/sfse/plugins
 )
 
-file(GLOB_RECURSE OUTPUT_DLLS "${CMAKE_CURRENT_SOURCE_DIR}/contrib/**/*.dll")
-file(GLOB_RECURSE OUTPUT_PDBS "${CMAKE_CURRENT_SOURCE_DIR}/contrib/**/*.pdb")
+file(GLOB_RECURSE OUTPUT_DLLS ${CMAKE_CURRENT_SOURCE_DIR}/contrib/*.dll)
+file(GLOB_RECURSE OUTPUT_PDBS ${CMAKE_CURRENT_SOURCE_DIR}/contrib/*.pdb)
 
 set_property(
   TARGET ${PROJECT_NAME}
-  APPEND PROPERTY ADDITIONAL_CLEAN_FILES "${OUTPUT_DLLS}"
+  APPEND PROPERTY ADDITIONAL_CLEAN_FILES ${OUTPUT_DLLS} ${OUTPUT_PDBS} ${CPM_SOURCE_CACHE} ${CMAKE_CURRENT_BINARY_DIR}/_deps
 )
-set_property(
-  TARGET ${PROJECT_NAME}
-  APPEND PROPERTY ADDITIONAL_CLEAN_FILES "${OUTPUT_PDBS}"
+
+set(ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/..")
+
+add_subdirectory("external/CommonLibSF" CommonLibSF EXCLUDE_FROM_ALL)
+
+find_package(tomlplusplus REQUIRED CONFIG)
+
+target_link_libraries(
+	"${PROJECT_NAME}"
+	PRIVATE
+        CommonLibSF::CommonLibSF
+		tomlplusplus::tomlplusplus
 )

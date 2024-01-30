@@ -9,79 +9,89 @@
     {
       "name": "base",
       "hidden": true,
+      "environment": {
+        "WINDOWS_FLAGS": "-DWIN32_LEAN_AND_MEAN -DNOMINMAX"
+      },
       "cacheVariables": {
-        "CMAKE_CXX_FLAGS": "$env{COMMONLIBSF_COMPILER} $env{COMMONLIBSF_PLATFORM} $env{COMMONLIBSF_TEXT}",
-        "CMAKE_SHARED_LINKER_FLAGS": "$env{COMMONLIBSF_LINKER}",
-        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL"
-      }
+        "CMAKE_CXX_FLAGS": "/cgthreads8 /EHsc /fp:contract /fp:except- /W4 /Zc:__cplusplus /D_ITERATOR_DEBUG_LEVEL=0 $env{COMPILER_FLAGS} $env{WINDOWS_FLAGS} $penv{CXXFLAGS}",
+        "CMAKE_SHARED_LINKER_FLAGS": "$env{COMMONLIBSF_LINKER} $penv{SHARED_LINKER_FLAGS}"
+      },
+      "cmakeExecutable": "C:/Program Files/CMake/bin/",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}"
     },
     {
-      "name": "vcpkg",
+      "name": "packaging-vcpkg",
       "hidden": true,
       "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-        "VCPKG_TARGET_TRIPLET": "x64-windows-static-md",
         "VCPKG_HOST_TRIPLET": "x64-windows-static-md",
-        "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/cmake"
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static-md"
       }
     },
     {
-      "name": "win32",
+      "name": "clang-cl",
       "hidden": true,
-      "environment": {
-        "COMMONLIBSF_PLATFORM": "-DWIN32_LEAN_AND_MEAN -DNOMINMAX"
-      }
-    },
-    {
-      "name": "x64",
-      "hidden": true,
-      "architecture": {
-        "value": "x64",
-        "strategy": "external"
-      }
-    },
-    {
-      "name": "msvc",
-      "hidden": true,
-      "generator": "Ninja",
-      "cmakeExecutable": "C:/Program Files/CMake/bin/",
-      "environment": {
-        "COMMONLIBSF_COMPILER": "/cgthreads8 /diagnostics:caret /EHsc /fp:contract /fp:except- /guard:cf- /MP /permissive- /sdl /W4 /Zc:__cplusplus /Zc:enumTypes /Zc:lambda /Zc:preprocessor /Zc:referenceBinding /Zc:rvalueCast /Zc:templateScope /Zc:ternary",
-        "COMMONLIBSF_LINKER": "/CGTHREADS:8 /MACHINE:x64 /DEBUG:FULL"
-      },
       "cacheVariables": {
-        "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "/fp:fast /GL /GR- /Gw /O2 /Ob3 /Qpar",
-        "CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO": "/LTCG:INCREMENTAL /OPT:REF,ICF=4",
-        "CMAKE_CXX_FLAGS_DEBUG": "/Od",
-        "CMAKE_SHARED_LINKER_FLAGS_DEBUG": "/DEBUGTYPE:FIXUP"
+        "CMAKE_CXX_COMPILER": "clang-cl"
+      },
+      "environment": {
+        "COMPILER_FLAGS": "-fms-extensions -fdelayed-template-parsing -Wno-unused-private-field -Wno-unused-parameter -Wno-overloaded-virtual -Wno-delete-non-abstract-non-virtual-dtor -Wno-unused-command-line-argument"
       },
       "vendor": {
         "microsoft.com/VisualStudioSettings/CMake/1.0": {
-          "intelliSenseMode": "windows-msvc-x64",
+          "intelliSenseMode": "windows-clang-x64",
           "enableMicrosoftCodeAnalysis": true,
           "enableClangTidyCodeAnalysis": true
         }
       }
     },
     {
-      "name": "build-release-msvc",
-      "inherits": ["base", "vcpkg", "win32", "x64", "msvc"],
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      "name": "msvc",
+      "hidden": true,
+      "generator": "Ninja",
+      "environment": {
+        "COMPILER_FLAGS": "/favor:blend /Zc:enumTypes /Zc:preprocessor /Zc:templateScope",
+        "COMMONLIBSF_LINKER": "/CGTHREADS:8 /MACHINE:x64 /DEBUG:FULL"
       },
-      "displayName": "Release",
-      "description": "Optimized release build.",
-      "binaryDir": "${sourceDir}/build/release-msvc"
+      "vendor": {
+        "microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "intelliSenseMode": "windows-msvc-x64",
+          "enableMicrosoftCodeAnalysis": true
+        }
+      }
+    },
+    {
+      "name": "build-release-clang-cl",
+      "inherits": [ "base", "clang-cl", "packaging-vcpkg" ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "/fp:fast /GR- /Gw /O2"
+      }
+    },
+    {
+      "name": "build-debug-clang-cl",
+      "inherits": [ "base", "clang-cl", "packaging-vcpkg" ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "build-release-msvc",
+      "inherits": [ "base", "msvc", "packaging-vcpkg" ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "/fp:fast /GR- /Gw /O2 /Ob3 /Qpar",
+        "CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO": "/LTCG:INCREMENTAL /OPT:ICF=4"
+      }
     },
     {
       "name": "build-debug-msvc",
-      "inherits": ["base", "vcpkg", "win32", "x64", "msvc"],
+      "inherits": [ "base", "msvc", "packaging-vcpkg" ],
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
-      },
-      "displayName": "Debug",
-      "description": "Debug build.",
-      "binaryDir": "${sourceDir}/build/debug-msvc"
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_SHARED_LINKER_FLAGS_DEBUG": "/DEBUGTYPE:FIXUP"
+      }
     }
   ],
   "buildPresets": [
@@ -95,6 +105,18 @@
       "name": "debug-msvc",
       "displayName": "2. Debug (MSVC)",
       "configurePreset": "build-debug-msvc",
+      "description": "Debug build."
+    },
+    {
+      "name": "release-clang-cl",
+      "displayName": "3. Release (clang-cl)",
+      "configurePreset": "build-release-clang-cl",
+      "description": "Optimized release build."
+    },
+    {
+      "name": "debug-clang-cl",
+      "displayName": "4. Debug (clang-cl)",
+      "configurePreset": "build-debug-clang-cl",
       "description": "Debug build."
     }
   ]

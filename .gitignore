@@ -533,5 +533,6 @@ FodyWeavers.xsd
 
 build/
 
-contrib/**/*.dll
-contrib/**/*.pdb
+contrib/Plugin*
+
+external/
