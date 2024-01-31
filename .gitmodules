@@ -1,0 +1,5 @@
+[submodule "external/CommonLibSF"]
+	path = external/CommonLibSF
+	url = https://github.com/Starfield-Reverse-Engineering/CommonLibSF
+[submodule "external/CommonLibSF"]
+	branch = main
