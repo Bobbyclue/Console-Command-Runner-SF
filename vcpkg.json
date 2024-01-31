@@ -2,7 +2,5 @@
   "name": "console-command-runner",
   "version": "1.4.0",
   "builtin-baseline": "84df5613f71eda8a73ab08dc3041f3af7103a5b2",
-  "dependencies": [
-    "tomlplusplus"
-  ]
+  "dependencies": ["tomlplusplus"]
 }
